@@ -4,11 +4,13 @@ const Like = require("../models/Like")
 const Address = require("../models/Address")
 const Review = require("../models/Review")
 const Resident = require("../models/Resident")
+const db = require("../db/pg")
 
 // users
 testRouter.get("/user/:id", async (req, res) => {
   const id = req.params.id
-  const query
+  const query = `SELECT * from users 
+  WHERE users.id = $1`
 })
 testRouter.post("/user/new", async (req, res) => {
   const user = req.body

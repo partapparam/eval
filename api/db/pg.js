@@ -1,5 +1,5 @@
 const { Pool } = require("pg")
-const connectionString = process.env.POSTGRESS_DB
+const connectionString = process.env.POSTGRES_DB
 
 if (!connectionString) {
   console.log("No connection String")
