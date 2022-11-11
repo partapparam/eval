@@ -8,6 +8,7 @@ const Resident = require("../models/Resident")
 // users
 testRouter.get("/user/:id", async (req, res) => {
   const id = req.params.id
+  const query
 })
 testRouter.post("/user/new", async (req, res) => {
   const user = req.body

@@ -1,12 +1,12 @@
 const express = require("express")
 const app = express()
-const port = process.env.port || 3000
+require("dotenv").config()
+const port = process.env.PORT || 3000
 const morgan = require("morgan")
 const cors = require("cors")
 const req = require("express/lib/request")
 const checkIfAuth = require("./middleware/isAuth")
-require("dotenv").config()
-require("./db")
+require("./db/pg")
 // removes -x-powered-by response header
 app.disable("x-powered-by")
 app.use(cors())
