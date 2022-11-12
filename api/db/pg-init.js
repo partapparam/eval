@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS residents(
     firstName VARCHAR(30) NOT NULL,
     lastName VARCHAR(30) NOT NULL,
     tenant BOOLEAN NOT NULL,
+    current BOOLEAN NOT NULL,
     FOREIGN KEY (residentAddressId) REFERENCES addresses(id)
 );
 
@@ -57,7 +58,7 @@ CREATE TABLE IF NOT EXISTS likes(
     id SERIAL PRIMARY KEY,
     likeReviewId INT NOT NULL,
     likeUserId INT NOT NULL,
-    liked BOOLEAN,
+    liked BOOLEAN NOT NULL,
     FOREIGN KEY (likeReviewId) REFERENCES reviews(id),
     FOREIGN KEY (likeUserId) REFERENCES users(id)
 );
