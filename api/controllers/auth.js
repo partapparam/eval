@@ -9,7 +9,7 @@ const db = require("../db/pg")
  * Queries
  */
 
-const signupQuery = `INSERT INTO users (firstName, lastName, email, password, image, username, jobTitle) 
+const signupQuery = `INSERT INTO users (first_name, last_name, email, password, image, username, job_title) 
   VALUES ($1, $2, $3, $4, $5, $6, $7)
   RETURNING *`
 const validateQuery = `SELECT * FROM users WHERE users.email = $1`
@@ -47,13 +47,13 @@ authRouter.post("/signup", async (req, res) => {
     }
     const passwordHash = await bcrypt.hash(user.password, saltRounds)
     const response = await db.query(signupQuery, [
-      user.firstName,
-      user.lastName,
+      user.first_name,
+      user.last_name,
       user.email,
       passwordHash,
       user.image,
       user.username,
-      user.jobTitle,
+      user.job_title,
     ])
     // remove password from response
     delete response.rows[0].Password
