@@ -2,10 +2,10 @@ const testRouter = require("express").Router()
 const db = require("../db/pg")
 
 const getUserQuery = `SELECT * from users 
-  WHERE users.id = $1`
-const updateUserQuery = `UPDATE users SET first_name = $1, last_name = $2, email = $3, job_title = $4 WHERE users.id = $5`
-const updateImageQuery = `UPDATE users SET image = $1 WHERE users.id = $2`
-const updateUsernameQuery = `UPDATE users SET username = $1 WHERE users.id = $2`
+  WHERE id = $1`
+const updateUserQuery = `UPDATE users SET first_name = $1, last_name = $2, email = $3, job_title = $4 WHERE id = $5`
+const updateImageQuery = `UPDATE users SET image = $1 WHERE id = $2`
+const updateUsernameQuery = `UPDATE users SET username = $1 WHERE id = $2`
 // users
 testRouter.get("/user/:id", async (req, res) => {
   const id = req.params.id
@@ -62,21 +62,20 @@ testRouter.put("/user/update/:id/username", async (req, res) => {
   }
 })
 
-const getAddressQuery = `SELECT * FROM addresses WHERE addresses.id = $1`
+const getAddressQuery = `SELECT *
+FROM addresses
+INNER JOIN reviews ON addresses.id = reviews.review_address_id
+INNER JOIN residents ON addresses.id = residents.resident_address_id
+WHERE addresses.id = $1`
 // TODO Address - need address, reviews for address, user that created review, residents of each review, resident's of address, likes for each review.
 testRouter.get("/address/:id", async (req, res) => {
   const addressId = req.params.id
   try {
-    const address = await Review.find({ address: addressId })
-      .populate("user")
-      .populate("resident")
-      .populate("address")
-      .exec((err, reviews) => {
-        if (err) throw new Error("nothing found")
-        return res.json({ data: reviews, message: "success" })
-      })
+    const addr = await db.query(getAddressQuery, [addressId])
+    return res.json({ message: "success", data: addr.rows })
   } catch (error) {
-    return res.json({ message: "success", data: error })
+    console.log(error)
+    return res.json({ message: "error", data: error })
   }
 })
 // create address
@@ -86,7 +85,7 @@ testRouter.post("/address/new", async (req, res) => {
   try {
     const savedAddress = await db.query(newAddressQuery, [
       body.street_address,
-      body.zip_code,
+      body.zipcode,
       body.address_type,
       body.unit,
     ])
@@ -136,8 +135,8 @@ testRouter.get("/residents/:id/reviews", async (req, res) => {
   }
 })
 // new review
-const saveReviewQuery = `INSERT INTO reviews (review_user_id, review_address_id, review_resident-id, friendly, hospitable, payment, respectful, expectations, visit_type, text) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`
-testRouter.post("/address/review/new", async (req, res) => {
+const saveReviewQuery = `INSERT INTO reviews (review_user_id, review_address_id, review_resident_id, friendly, hospitable, payment, respectful, expectations, visit_type, text) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`
+testRouter.post("/address/:id/review/new", async (req, res) => {
   const body = req.body
   try {
     const savedReview = await db.query(saveReviewQuery, [
@@ -203,17 +202,17 @@ testRouter.put("/reviews/:id/update", async (req, res) => {
 
 // resident's
 // create resident
-const newResidentQuery = `INSERT INTO residents (first_name, last_name, tenant, current, resident_address_id) VALUES ($1, $2, $3, $4, $5) RETURNING *`
+const newResidentQuery = `INSERT INTO residents (resident_address_id, first_name, last_name, tenant, current) VALUES ($1, $2, $3, $4, $5) RETURNING *`
 testRouter.post("/address/:id/residents/new", async (req, res) => {
   const body = req.body
   const addressId = req.params.id
   try {
     const savedResident = await db.query(newResidentQuery, [
+      addressId,
       body.first_name,
       body.last_name,
       body.tenant,
       body.current,
-      addressId,
     ])
     return res.json({ message: "success", data: savedResident.rows[0] })
   } catch (error) {
@@ -227,7 +226,7 @@ testRouter.get("/address/:id/residents", async (req, res) => {
   const addressId = req.params.id
   try {
     const residents = await db.query(getResidentsQuery, [addressId])
-    return res.json({ message: "success", data: residents.rows })
+    return res.json({ message: "success", data: residents })
   } catch (error) {
     console.log("error getting all residents")
     return res.json({ message: "error", data: error })

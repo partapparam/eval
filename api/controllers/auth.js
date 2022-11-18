@@ -12,7 +12,7 @@ const db = require("../db/pg")
 const signupQuery = `INSERT INTO users (first_name, last_name, email, password, image, username, job_title) 
   VALUES ($1, $2, $3, $4, $5, $6, $7)
   RETURNING *`
-const validateQuery = `SELECT * FROM users WHERE users.email = $1`
+const validateQuery = `SELECT * FROM users WHERE email = $1`
 
 /**
  * Validates that a user exists
