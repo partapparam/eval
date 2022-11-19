@@ -9,7 +9,7 @@ const client = new Client(process.env.POSTGRES_DB)
 
 const createScript = `
 CREATE TABLE IF NOT EXISTS users(
-    id SERIAL PRIMARY KEY,
+    user_id SERIAL PRIMARY KEY,
     first_name VARCHAR(30) NOT NULL,
     last_name VARCHAR(30) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS users(
 );
 
 CREATE TABLE IF NOT EXISTS addresses(
-    id SERIAL PRIMARY KEY,
+    address_id SERIAL PRIMARY KEY,
     street_address VARCHAR(200) NOT NULL,
     zipcode INT NOT NULL,
     address_type VARCHAR(20) NOT NULL,
@@ -29,21 +29,21 @@ CREATE TABLE IF NOT EXISTS addresses(
 
 
 CREATE TABLE IF NOT EXISTS residents(
-    id SERIAL PRIMARY KEY,
-    resident_address_id INT NOT NULL,
+    resident_id SERIAL PRIMARY KEY,
+    resident_address_id_fkey INT NOT NULL,
     first_name VARCHAR(30) NOT NULL,
     last_name VARCHAR(30) NOT NULL,
     tenant BOOLEAN NOT NULL,
     current BOOLEAN NOT NULL,
-    FOREIGN KEY (resident_address_id) REFERENCES addresses(id)
+    FOREIGN KEY (resident_address_id_fkey) REFERENCES addresses(address_id) ON DELETE CASCADE
 );
 
 
 CREATE TABLE IF NOT EXISTS reviews(
-    id SERIAL PRIMARY KEY,
-    review_user_id INT NOT NULL,
-    review_address_id INT NOT NULL,
-    review_resident_id INT NOT NULL,
+    review_id SERIAL PRIMARY KEY,
+    review_user_id_fkey INT NOT NULL,
+    review_address_id_fkey INT NOT NULL,
+    review_resident_id_fkey INT NOT NULL,
     friendly INT NOT NULL,
     hospitable INT NOT NULL,
     payment INT NOT NULL,
@@ -51,18 +51,17 @@ CREATE TABLE IF NOT EXISTS reviews(
     expectations INT NOT NULL,
     visit_type VARCHAR(30) NOT NULL,
     text VARCHAR(300) NULL,
-    FOREIGN KEY (review_user_id) REFERENCES users(id),
-    FOREIGN KEY (review_address_id) REFERENCES addresses(id),
-    FOREIGN KEY (review_resident_id) REFERENCES residents(id)
+    FOREIGN KEY (review_user_id_fkey) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (review_address_id_fkey) REFERENCES addresses(address_id) ON DELETE CASCADE,
+    FOREIGN KEY (review_resident_id_fkey) REFERENCES residents(resident_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS likes(
-    id SERIAL PRIMARY KEY,
-    like_review_id INT NOT NULL,
-    like_user_id INT NOT NULL,
-    liked BOOLEAN NOT NULL,
-    FOREIGN KEY (like_review_id) REFERENCES reviews(id),
-    FOREIGN KEY (like_user_id) REFERENCES users(id)
+    like_id SERIAL PRIMARY KEY,
+    like_review_id_fkey INT NOT NULL,
+    like_user_id_fkey INT NOT NULL,
+    FOREIGN KEY (like_review_id_fkey) REFERENCES reviews(review_id) ON DELETE CASCADE,
+    FOREIGN KEY (like_user_id_fkey) REFERENCES users(user_id) ON DELETE CASCADE
 );
 `
 
