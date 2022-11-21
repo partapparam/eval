@@ -1,5 +1,6 @@
 const testRouter = require("express").Router()
 const db = require("../db/pg")
+const checkIfAuth = require("../middleware/isAuth")
 
 const getUserQuery = `SELECT * from users 
   WHERE user_id = $1`
@@ -19,9 +20,10 @@ testRouter.get("/user/:id", async (req, res) => {
     return res.json({ message: "error", data: "There was an error on test 22" })
   }
 })
-testRouter.put("/user/update/:id", async (req, res) => {
+testRouter.put("/users/:id/update", checkIfAuth, async (req, res) => {
   const body = req.body
   const userId = req.params.id
+  console.log(req)
   try {
     const updatedUser = await db.query(updateUserQuery, [
       body.first_name,
@@ -32,7 +34,7 @@ testRouter.put("/user/update/:id", async (req, res) => {
     ])
     return res.json({ message: "success", data: "User updated" })
   } catch (error) {
-    console.log("error on 31", error._message)
+    console.log("error on 31", error)
     return res.json({ message: "error", data: "error updating user" })
   }
 })
@@ -47,9 +49,10 @@ testRouter.put("/user/update/:id/image", async (req, res) => {
     return res.json({ message: "error", data: "error saving image" })
   }
 })
-testRouter.put("/user/update/:id/username", async (req, res) => {
+testRouter.put("/users/:id/update/username", checkIfAuth, async (req, res) => {
   const body = req.body
   const userId = req.params.id
+  console.log(req.auth, req.user)
   try {
     const updatedUser = await db.query(updateUsernameQuery, [
       body.username,
@@ -62,13 +65,16 @@ testRouter.put("/user/update/:id/username", async (req, res) => {
   }
 })
 
+/**
+ * Get Address Query
+ * Join reviews for address and the residents, reviewers and total likes for reviews
+ */
 const getAddressQuery = `SELECT addresses.*, reviews.*, residents.first_name as resident_first_name, residents.last_name as resident_last_name, users.username as reviewer_username, (SELECT count(*) from likes WHERE reviews.review_id = likes.like_review_id_fkey) as likes
 FROM addresses
 JOIN reviews ON addresses.address_id = reviews.review_address_id_fkey
 JOIN residents ON reviews.review_resident_id_fkey = residents.resident_id
 JOIN users ON reviews.review_user_id_fkey = users.user_id
 WHERE addresses.address_id = $1`
-// TODO Address - need address, reviews for address, user that created review, residents of each review, resident's of address, likes for each review.
 testRouter.get("/address/:id", async (req, res) => {
   const addressId = req.params.id
   try {
@@ -97,21 +103,30 @@ testRouter.post("/address/new", async (req, res) => {
   }
 })
 
-// Review
-// get review
-// TODO on all, add in JOINS
-const getReviewQuery = `SELECT * FROM reviews WHERE reviews.review_id = $id`
+/**
+ * Get Review Query
+ * Join User as Reviewer, review Resident details, review address details and total likes
+ */
+const getReviewQuery = `SELECT r.*, u.image as reviewer_image, u.username as reviewer_username, d.first_name as resident_first_name, d.last_name as resident_last_name, a.*, (SELECT count(*) FROM likes WHERE r.review_id = likes.like_review_id_fkey) as likes
+FROM reviews r
+JOIN users u ON r.review_user_id_fkey = u.user_id
+JOIN residents d ON r.review_resident_id_fkey = d.resident_id
+JOIN addresses a ON r.review_address_id_fkey = a.address_id
+WHERE r.review_id = $1`
 testRouter.get("/review/:id", async (req, res) => {
   const reviewId = req.params.id
   try {
-    const review = await db.query(getReviewQuery, [reviewId])
-    return res.json({ message: "success", data: review })
+    const data = await db.query(getReviewQuery, [reviewId])
+    const reviews = data.rows[0]
+    return res.json({ message: "success", data: reviews })
   } catch (error) {
-    console.log("error on test 113")
+    console.log("error on test 113", error)
     return res.json({ message: "error", data: error })
   }
 })
-// get reviews by user
+/**
+ * Get all Reviews by User
+ */
 const getUserReviewsQuery = `SELECT * FROM reviews WHERE reviews.review_user_id_fkey = $1`
 testRouter.get("/user/:id/reviews", async (req, res) => {
   const userId = req.params.id
@@ -123,19 +138,29 @@ testRouter.get("/user/:id/reviews", async (req, res) => {
     return res.json({ message: "error", data: error })
   }
 })
-// get reviews by resident
-const getResidentReviewsQuery = `SELECT * FROM reviews WHERE reviews.review_resident_id_fkey = $1 INNER LEFT JOIN ON reviews.review_address_id_fkey = addresses.address_id && reviews.review_resident_id_fkey = residents.resident_id`
+/**
+ * Get all Reviews for Resident
+ * Join reviewer details, total likes
+ */
+const getResidentReviewsQuery = `SELECT r.*, u.username as reviewer_username, u.image as reviewer_image, a.*, (SELECT count(*) FROM likes WHERE r.review_id = likes.like_review_id_fkey) as likes
+FROM reviews r
+JOIN addresses a ON r.review_address_id_fkey = a.address_id 
+JOIN users u ON r.review_user_id_fkey = u.user_id
+WHERE r.review_resident_id_fkey = $1`
 testRouter.get("/residents/:id/reviews", async (req, res) => {
   const residentId = req.params.id
   try {
     const reviews = await db.query(getResidentReviewsQuery, [residentId])
-    return res.json({ message: "success", data: reviews.rows[0] })
+    return res.json({ message: "success", data: reviews.rows })
   } catch (error) {
-    console.log("error on 138")
+    console.log("error on 138", error)
     return res.json({ message: "error", data: error })
   }
 })
-// new review
+/**
+ * Create new review
+ * Add in Address ID, reviewer User ID, Resident ID
+ */
 const saveReviewQuery = `INSERT INTO reviews (review_user_id_fkey, review_address_id_fkey, review_resident_id_fkey, friendly, hospitable, payment, respectful, expectations, visit_type, text) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`
 testRouter.post("/address/:id/review/new", async (req, res) => {
   const body = req.body

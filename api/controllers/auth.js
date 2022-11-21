@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken")
 const { secretKey } = require("../keyConfig")
 const authRouter = require("express").Router()
-const User = require("../models/User")
 const bcrypt = require("bcrypt")
 const db = require("../db/pg")
 
@@ -28,7 +27,7 @@ const createToken = (user) => {
   return jwt.sign({ id: user.id }, secretKey, {
     algorithm: "RS256",
     expiresIn: 12000,
-    subject: "Login Details",
+    subject: "Login details",
   })
 }
 
