@@ -24,7 +24,7 @@ const validate = async (email) => {
  * Create JWT Token
  */
 const createToken = (user) => {
-  return jwt.sign({ id: user.id }, secretKey, {
+  return jwt.sign({ userId: user.user_id }, secretKey, {
     algorithm: "RS256",
     expiresIn: 12000,
     subject: "Login details",

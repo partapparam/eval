@@ -49,10 +49,10 @@ testRouter.put("/user/update/:id/image", async (req, res) => {
     return res.json({ message: "error", data: "error saving image" })
   }
 })
-testRouter.put("/users/:id/update/username", checkIfAuth, async (req, res) => {
+testRouter.put("/users/:id/update/username", async (req, res) => {
   const body = req.body
   const userId = req.params.id
-  console.log(req.auth, req.user)
+  console.log(req.auth)
   try {
     const updatedUser = await db.query(updateUsernameQuery, [
       body.username,
@@ -228,7 +228,7 @@ testRouter.put("/reviews/:id/update", async (req, res) => {
 
 // resident's
 // create resident
-const newResidentQuery = `INSERT INTO residents (resident_address_id_fkey, first_name, last_name, tenant, current) VALUES ($1, $2, $3, $4, $5) RETURNING *`
+const newResidentQuery = `INSERT INTO residents (resident_address_id_fkey, first_name, last_name, tenant) VALUES ($1, $2, $3, $4, $5) RETURNING *`
 testRouter.post("/address/:id/residents/new", async (req, res) => {
   const body = req.body
   const addressId = req.params.id

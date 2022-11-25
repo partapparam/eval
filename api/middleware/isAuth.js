@@ -15,9 +15,6 @@ const getTokenFromHeader = (req) => {
     console.log("THe token is here - isAuth.js")
     const token = req.headers.authorization.split(" ")[1]
     const de = JSON.parse(Buffer.from(token.split(".")[1], "base64").toString())
-    console.log("decoding---", de)
-    const ver = js.verify(token, publicKey)
-    console.log(ver)
     return token
   }
 }
