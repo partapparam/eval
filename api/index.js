@@ -16,12 +16,19 @@ app.use(morgan("tiny"))
 /**
  * Routers and Middleware
  */
+// TODO fix all routes
 const authRouter = require("./controllers/auth")
 const userRouter = require("./controllers/user")
-const testRouter = require("./controllers/testController")
+const addressRouter = require("./controllers/address")
+const residentRouter = require("./controllers/resident")
+const reviewRouter = require("./controllers/review")
+const likeRouter = require("./controllers/like")
 app.use("/api/auth", authRouter)
-app.use("/api/users", checkIfAuth, userRouter)
-app.use("/api/test", testRouter)
+app.use("/api/users", userRouter)
+app.use("/api/address", addressRouter)
+app.use("/api/residents", residentRouter)
+app.use("/api/reviews", reviewRouter)
+app.use("/api/likes", likeRouter)
 
 /**
  * Handles all failed routing that do not match or Auth is not met

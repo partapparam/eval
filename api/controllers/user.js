@@ -1,78 +1,91 @@
-const usersRouter = require("express").Router()
-const bcrypt = require("bcrypt")
+const userRouter = require("express").Router()
+const db = require("../db/pg")
+const checkIfAuth = require("../middleware/isAuth")
+
+// TODO will an error thrown outside try/catch work or no.
 
 /**
- * get all users
+ * Queries
+ * Confirm ID in URL == req.auth.user_id from Decoded JWT Token
  */
-usersRouter.get("/all", async (req, res) => {
+const getUserQuery = `SELECT * from users 
+  WHERE user_id = $1`
+const updateUserQuery = `UPDATE users SET first_name = $1, last_name = $2, email = $3, job_title = $4 WHERE user_id = $5`
+const updateImageQuery = `UPDATE users SET image = $1 WHERE user_id = $2`
+const updateUsernameQuery = `UPDATE users SET username = $1 WHERE user_id = $2`
+
+/**
+ * Get user by id
+ */
+userRouter.get("/user/:id", async (req, res) => {
+  const id = req.params.id
   try {
-    const users = await User.find()
-    res.json({ message: "success", data: users })
+    const response = await db.query(getUserQuery, [id])
+    const user = response.rows[0]
+    delete user.password
+    return res.json({ message: "success", data: user })
   } catch (error) {
-    console.log(error)
-    res.status(500).json({ message: "error", data: "cannot find users" })
-  }
-})
-
-// Get user by id
-usersRouter.get("/:id", async (req, res) => {
-  const id = req.params.id
-  try {
-    const user = await User.findById(id)
-    res.json({ message: "success", data: user })
-  } catch {
-    // logger.error(error)
-    //   TODO = res.status vs res.json
-    //   how to check for res.status on client side
-    res.status(500).json({ message: "error", data: "cannot find user" })
+    console.log("Test js.21", error._message)
+    return res.json({ message: "error", data: "There was an error on test 22" })
   }
 })
 
 /**
- * Update User by Id
- * By default, Mongo will send back old record
- * See options in query
+ * Update user by ID
  */
-usersRouter.put("/update/:id", async (req, res) => {
-  const id = req.params.id
+userRouter.put("/users/:id/update", checkIfAuth, async (req, res) => {
   const body = req.body
-  const user = {
-    name: {
-      first: body.first,
-      last: body.last,
-    },
-    email: body.email,
-    username: body.username,
-    image: body.image,
-    jobTitle: body.jobTitle,
-  }
-  console.log(user, req)
-
+  const userId = req.params.id
+  if (userId !== req.auth.user_id)
+    throw Error("Incorrect user -- you do not have permission")
   try {
-    const updatedUser = await User.findByIdAndUpdate(id, user, {
-      new: true,
-    })
-    console.log(updatedUser)
-    return res.json({ message: "success", data: updatedUser })
+    const updatedUser = await db.query(updateUserQuery, [
+      body.first_name,
+      body.last_name,
+      body.email,
+      body.job_title,
+      userId,
+    ])
+    return res.json({ message: "success", data: "User updated" })
   } catch (error) {
-    console.log(error)
-
-    return res.status(500).json({ message: "error" })
+    console.log("error on 31", error)
+    return res.json({ message: "error", data: "error updating user" })
   }
 })
 
 /**
- * Delete user by ID
+ * Update User.image by Id
  */
-usersRouter.delete("/:id/", async (req, res) => {
-  const id = req.params.id
+userRouter.put("/user/update/:id/image", checkIfAuth, async (req, res) => {
+  const body = req.body
+  const userId = req.params.id
+  if (userId !== req.auth.user_id)
+    throw Error("Incorrect user -- you do not have permission")
   try {
-    const deletedUser = await User.findByIdAndDelete(id)
-    res.status(200).json({ message: "success", data: deletedUser })
+    const response = await db.query(updateImageQuery, [body.image, userId])
+    return res.json({ message: "success", data: "updated image" })
   } catch (error) {
-    console.log(error)
-    res.status(400).json({ status: "error", message: error._message })
+    console.log("error on test 50", error._message)
+    return res.json({ message: "error", data: "error saving image" })
   }
 })
 
-module.exports = usersRouter
+/**
+ * Update User.username by Id
+ */
+userRouter.put("/users/:id/update/username", checkIfAuth, async (req, res) => {
+  const body = req.body
+  const userId = req.params.id
+  try {
+    const updatedUser = await db.query(updateUsernameQuery, [
+      body.username,
+      userId,
+    ])
+    return res.json({ message: "success", data: "username updated" })
+  } catch (error) {
+    console.log("error on 60", error.detail)
+    return res.json({ message: "error", data: error })
+  }
+})
+
+module.exports = userRouter
