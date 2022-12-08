@@ -12,4 +12,4 @@ const signup = async (body) => {
   return response.data
 }
 
-export default { login, signup }
+export { login, signup }
