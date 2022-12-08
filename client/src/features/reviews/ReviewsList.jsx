@@ -1,7 +1,12 @@
-import React from "react"
-import { useSelector } from "react-redux"
+import React, { useEffect } from "react"
+import { useSelector, useDispatch } from "react-redux"
+import { initializeReviews } from "./reviewsSlice"
 
 export const ReviewsList = () => {
+  const dispatch = useDispatch()
+  useEffect(() => {
+    dispatch(initializeReviews())
+  }, [])
   const reviews = useSelector((state) => state.reviews)
 
   const renderedReviews = reviews.map((review) => (
