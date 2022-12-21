@@ -31,7 +31,7 @@ likeRouter.post("/reviews/:id/like", checkIfAuth, async (req, res) => {
 const deleteLikeQuery = `DELETE FROM likes 
 WHERE likes.like_review_id_fkey = $1 
 AND likes.like_user_id_fkey = $2`
-likeRouter.delete("reviews/:id/like", async (req, res) => {
+likeRouter.delete("/reviews/:id/like", async (req, res) => {
   const reviewId = req.params.id
   const user = req.auth.user_id
   try {

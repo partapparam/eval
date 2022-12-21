@@ -5,7 +5,7 @@ const reviewsUrl = baseUrl + "/reviews"
 const getAllReviews = async () => {
   console.log("getAllReviews Called")
   try {
-    const response = await axios.get(reviewsUrl + "review/1")
+    const response = await axios.get(reviewsUrl + "/review/1")
     console.log(response)
     return response.data
   } catch (error) {

@@ -16,7 +16,7 @@ JOIN residents ON reviews.review_resident_id_fkey = residents.resident_id
 JOIN users ON reviews.review_user_id_fkey = users.user_id
 WHERE addresses.address_id = $1`
 
-addressRouter.get("/address/:id", async (req, res) => {
+addressRouter.get("/:id", async (req, res) => {
   const addressId = req.params.id
   try {
     const addr = await db.query(getAddressQuery, [addressId])
@@ -27,7 +27,7 @@ addressRouter.get("/address/:id", async (req, res) => {
   }
 })
 
-addressRouter.post("/address/new", async (req, res) => {
+addressRouter.post("/new", async (req, res) => {
   const body = req.body
   try {
     const savedAddress = await db.query(newAddressQuery, [

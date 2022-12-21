@@ -17,7 +17,7 @@ const updateUsernameQuery = `UPDATE users SET username = $1 WHERE user_id = $2`
 /**
  * Get user by id
  */
-userRouter.get("/user/:id", async (req, res) => {
+userRouter.get("/:id", async (req, res) => {
   const id = req.params.id
   try {
     const response = await db.query(getUserQuery, [id])
@@ -33,7 +33,7 @@ userRouter.get("/user/:id", async (req, res) => {
 /**
  * Update user by ID
  */
-userRouter.put("/users/:id/update", checkIfAuth, async (req, res) => {
+userRouter.put("/:id/update", checkIfAuth, async (req, res) => {
   const body = req.body
   const userId = req.params.id
   if (userId !== req.auth.user_id)
@@ -56,7 +56,7 @@ userRouter.put("/users/:id/update", checkIfAuth, async (req, res) => {
 /**
  * Update User.image by Id
  */
-userRouter.put("/user/update/:id/image", checkIfAuth, async (req, res) => {
+userRouter.put("/:id/update/image", checkIfAuth, async (req, res) => {
   const body = req.body
   const userId = req.params.id
   if (userId !== req.auth.user_id)
@@ -73,7 +73,7 @@ userRouter.put("/user/update/:id/image", checkIfAuth, async (req, res) => {
 /**
  * Update User.username by Id
  */
-userRouter.put("/users/:id/update/username", checkIfAuth, async (req, res) => {
+userRouter.put("/:id/update/username", checkIfAuth, async (req, res) => {
   const body = req.body
   const userId = req.params.id
   try {
